@@ -1,0 +1,52 @@
+! =====================================================
+! GOV-SW1 - Secure Government Office Network Lab
+! Relevant Switch Configuration
+! =====================================================
+
+hostname GOV-SW1
+
+!
+! VLAN definitions
+!
+vlan 10
+ name ADMINISTRATION
+
+vlan 20
+ name IT-SECURITY
+
+vlan 50
+ name INTERNAL-SERVERS
+
+!
+! Administration workstation
+!
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 10
+
+!
+! IT / Security workstation
+!
+interface FastEthernet0/3
+ switchport mode access
+ switchport access vlan 20
+
+!
+! Internal server
+!
+interface FastEthernet0/4
+ switchport mode access
+ switchport access vlan 50
+
+!
+! Trunk link to GOV-R1
+!
+interface GigabitEthernet0/1
+ switchport mode trunk
+
+!
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+!
+end
