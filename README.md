@@ -23,6 +23,9 @@ The simulated government office contains three separate network segments:
 Each department is placed in a separate VLAN to reduce unnecessary communication between network segments.
 
 ## 🌐 Network Architecture
+### Network Topology
+
+![Secure Government Office Network Topology](screenshots/network-topology.png)
 
 The current network includes:
 
