@@ -69,6 +69,11 @@ The following test verifies that the Administration VLAN is blocked from accessi
 
 ![ACL Access Control Validation](screenshots/acl-access-test.png)
 
+### ACL Hit Counter Verification
+
+The router ACL counters confirm that the configured security rules are actively processing network traffic. During testing, the deny rule recorded 8 matches for traffic from the Administration VLAN to the Internal Servers VLAN.
+
+![ACL Hit Counter Verification](screenshots/acl-hit-counters.png)
 
 After applying the ACL:
 
