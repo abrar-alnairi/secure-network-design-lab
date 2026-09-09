@@ -68,6 +68,8 @@ Before applying the ACL, the Administration workstation could communicate with t
 The following test verifies that the Administration VLAN is blocked from accessing the Internal Servers VLAN while access to the IT/Security VLAN remains available.
 
 ![ACL Access Control Validation](screenshots/acl-access-test.png)
+
+
 After applying the ACL:
 
 - Administration → Internal Server: Blocked
