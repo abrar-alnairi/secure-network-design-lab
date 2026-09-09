@@ -1,0 +1,51 @@
+! =====================================================
+! GOV-R1 - Secure Government Office Network Lab
+! Relevant Router Configuration
+! =====================================================
+
+hostname GOV-R1
+
+!
+! Physical interface connected to GOV-SW1
+!
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+!
+! VLAN 10 - Administration
+!
+interface GigabitEthernet0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+ ip access-group ADMIN-RESTRICTIONS in
+
+!
+! VLAN 20 - IT / Security
+!
+interface GigabitEthernet0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+
+!
+! VLAN 50 - Internal Servers
+!
+interface GigabitEthernet0/0.50
+ encapsulation dot1Q 50
+ ip address 192.168.50.1 255.255.255.0
+
+!
+! Extended ACL
+! Blocks Administration VLAN from accessing Internal Servers.
+! All other IP traffic is permitted.
+!
+ip access-list extended ADMIN-RESTRICTIONS
+ deny ip 192.168.10.0 0.0.0.255 192.168.50.0 0.0.0.255
+ permit ip any any
+
+!
+ip classless
+!
+end
