@@ -1,12 +1,14 @@
-! =====================================================
-! GOV-SW1 - Secure Government Office Network Lab
-! Relevant Switch Configuration
-! =====================================================
+!
+! Secure Government Office Network Lab
+! Device: GOV-SW1
+! Platform: Cisco 2960-24TT
+! Sanitized configuration for public GitHub repository
+!
 
 hostname GOV-SW1
 
 !
-! VLAN definitions
+! VLAN Segmentation
 !
 vlan 10
  name ADMINISTRATION
@@ -17,36 +19,62 @@ vlan 20
 vlan 50
  name INTERNAL-SERVERS
 
+vlan 999
+ name UNUSED-PORTS
+
 !
-! Administration workstation
+! ADMIN-PC - Port Security
 !
 interface FastEthernet0/2
  switchport mode access
  switchport access vlan 10
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0060.2FC4.9762
 
 !
-! IT / Security workstation
+! SECURITY-PC - Port Security
 !
 interface FastEthernet0/3
  switchport mode access
  switchport access vlan 20
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 00E0.B0E4.65A4
 
 !
-! Internal server
+! INTERNAL-SERVER - Port Security
 !
 interface FastEthernet0/4
  switchport mode access
  switchport access vlan 50
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0009.7C49.D7DB
 
 !
-! Trunk link to GOV-R1
+! Router Trunk
 !
 interface GigabitEthernet0/1
  switchport mode trunk
 
 !
-spanning-tree mode pvst
-spanning-tree extend system-id
+! Unused Port Hardening
+!
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+
+interface range FastEthernet0/5-24
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+
+interface GigabitEthernet0/2
+ switchport mode access
+ switchport access vlan 999
+ shutdown
 
 !
 end
