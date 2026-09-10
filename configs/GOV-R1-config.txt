@@ -1,52 +1,72 @@
-! =====================================================
-! GOV-R1 - Secure Government Office Network Lab
-! Relevant Router Configuration
-! =====================================================
+!
+! Secure Government Office Network Lab
+! Device: GOV-R1
+! Platform: Cisco 1941
+! Sanitized configuration for public GitHub repository
+!
 
 hostname GOV-R1
 
 !
-! Physical interface connected to GOV-SW1
+! Local administrative account
+! Secret intentionally redacted from public repository
+!
+username secadmin privilege 15 secret <REDACTED>
+
+!
+! SSH Management
+!
+ip domain-name govlab.local
+ip ssh version 2
+
+!
+! Router-on-a-Stick / Inter-VLAN Routing
 !
 interface GigabitEthernet0/0
  no ip address
- duplex auto
- speed auto
  no shutdown
 
-!
-! VLAN 10 - Administration
-!
 interface GigabitEthernet0/0.10
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.0
  ip access-group ADMIN-RESTRICTIONS in
 
-!
-! VLAN 20 - IT / Security
-!
 interface GigabitEthernet0/0.20
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.0
 
-!
-! VLAN 50 - Internal Servers
-!
 interface GigabitEthernet0/0.50
  encapsulation dot1Q 50
  ip address 192.168.50.1 255.255.255.0
 
 !
-! Extended ACL
-! Blocks Administration VLAN from accessing Internal Servers.
-! All other IP traffic is permitted.
+! Unused physical interface
+!
+interface GigabitEthernet0/1
+ no ip address
+ shutdown
+
+!
+! Restrict Administration VLAN from Internal Server VLAN
 !
 ip access-list extended ADMIN-RESTRICTIONS
  deny ip 192.168.10.0 0.0.0.255 192.168.50.0 0.0.0.255
  permit ip any any
 
 !
-ip classless
+! Permit remote router management only from IT/Security VLAN
+!
+ip access-list standard SSH-MANAGEMENT
+ permit 192.168.20.0 0.0.0.255
+
+!
+! Secure remote management
+! Telnet is not permitted
+!
+line vty 0 4
+ access-class SSH-MANAGEMENT in
+ login local
+ transport input ssh
+
 !
 end
-
