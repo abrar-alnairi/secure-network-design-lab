@@ -19,6 +19,9 @@ vlan 20
 vlan 50
  name INTERNAL-SERVERS
 
+vlan 60
+ name DMZ
+
 vlan 999
  name UNUSED-PORTS
 
@@ -53,6 +56,16 @@ interface FastEthernet0/4
  switchport port-security mac-address sticky 0009.7C49.D7DB
 
 !
+! DMZ-WEB-SERVER - Port Security
+!
+interface FastEthernet0/5
+ switchport mode access
+ switchport access vlan 60
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0030.A335.892E
+
+!
 ! Router Trunk
 !
 interface GigabitEthernet0/1
@@ -66,7 +79,7 @@ interface FastEthernet0/1
  switchport access vlan 999
  shutdown
 
-interface range FastEthernet0/5-24
+interface range FastEthernet0/6-24
  switchport mode access
  switchport access vlan 999
  shutdown
