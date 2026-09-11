@@ -39,6 +39,11 @@ interface GigabitEthernet0/0.50
  encapsulation dot1Q 50
  ip address 192.168.50.1 255.255.255.0
 
+interface GigabitEthernet0/0.60
+ encapsulation dot1Q 60
+ ip address 192.168.60.1 255.255.255.0
+ ip access-group DMZ-RESTRICTIONS in
+
 !
 ! Unused physical interface
 !
@@ -51,6 +56,13 @@ interface GigabitEthernet0/1
 !
 ip access-list extended ADMIN-RESTRICTIONS
  deny ip 192.168.10.0 0.0.0.255 192.168.50.0 0.0.0.255
+ permit ip any any
+
+!
+! Restrict DMZ from initiating access to Internal Servers
+!
+ip access-list extended DMZ-RESTRICTIONS
+ deny ip 192.168.60.0 0.0.0.255 192.168.50.0 0.0.0.255
  permit ip any any
 
 !
