@@ -1,164 +1,253 @@
-# Secure Government Office Network Lab 🔐
+# 🔐 Secure Government Office Network Lab
 
-A hands-on network security lab designed and implemented using Cisco Packet Tracer.
+> **Status: Work in Progress**
 
-The project simulates a small government office network and demonstrates practical network security controls including VLAN segmentation, access control, Layer 2 port security, secure remote management, and switch port hardening.
+A cybersecurity networking lab designed and implemented using Cisco Packet Tracer to simulate a secure government office network.
 
-## 📌 Project Status
+The project demonstrates network segmentation, access control, secure device management, Layer 2 hardening, DMZ isolation, and controlled web service deployment.
 
-🚧 Work in Progress
+---
 
-The core Head Office network and its initial security controls have been implemented and tested. Further network expansion and additional security controls are planned.
+## 🎯 Project Objectives
 
-## 🏢 Network Scenario
+The main objectives of this project are to:
 
-The simulated government office contains three separate network segments:
+- Segment departments and services using VLANs
+- Implement inter-VLAN routing using Router-on-a-Stick
+- Restrict unauthorized communication using Access Control Lists (ACLs)
+- Protect switch access ports using Port Security
+- Secure unused switch ports
+- Restrict router management using SSH and a management ACL
+- Separate the DMZ from internal server resources
+- Host a web service inside the DMZ using HTTPS
+- Validate implemented security controls through functional testing
 
-| VLAN | Department | Network |
-|------|------------|---------|
-| VLAN 10 | Administration | 192.168.10.0/24 |
-| VLAN 20 | IT / Security | 192.168.20.0/24 |
-| VLAN 50 | Internal Servers | 192.168.50.0/24 |
+---
 
-Each department is placed in a separate VLAN to reduce unnecessary communication between network segments and provide logical network separation.
+## 🏢 Current Network Scenario
 
-## 🌐 Network Architecture
+The current implementation represents the **Head Office** of a small government organization.
 
-### Network Topology
+| VLAN | Department / Zone | Network | Default Gateway |
+|---|---|---|---|
+| 10 | Administration | `192.168.10.0/24` | `192.168.10.1` |
+| 20 | IT / Security | `192.168.20.0/24` | `192.168.20.1` |
+| 50 | Internal Servers | `192.168.50.0/24` | `192.168.50.1` |
+| 60 | DMZ | `192.168.60.0/24` | `192.168.60.1` |
+| 999 | Unused Ports | N/A | N/A |
 
-![Secure Government Office Network Topology](screenshots/network-topology.png)
+---
 
-The current network includes:
+## 🖥️ Main Devices
 
-- Cisco 1941 Router (`GOV-R1`)
-- Cisco 2960 Switch (`GOV-SW1`)
-- Administration workstation
-- IT/Security workstation
-- Internal server
+| Device | Role | Address / Network |
+|---|---|---|
+| `GOV-R1` | Inter-VLAN Router | VLAN gateways |
+| `GOV-SW1` | Head Office Access Switch | VLAN segmentation |
+| `ADMIN-PC` | Administration Workstation | `192.168.10.10/24` |
+| `SECURITY-PC` | IT/Security Workstation | `192.168.20.10/24` |
+| `INTERNAL-SERVER` | Internal Server | `192.168.50.10/24` |
+| `DMZ-WEB-SERVER` | DMZ Web Server | `192.168.60.10/24` |
 
-Inter-VLAN routing is implemented using a Router-on-a-Stick architecture with an IEEE 802.1Q trunk between `GOV-R1` and `GOV-SW1`.
+---
 
-## 🔒 Security Controls Implemented
+## 🗺️ Network Topology
 
-### 1. VLAN Segmentation
+The Head Office currently uses four operational VLANs connected through an 802.1Q trunk between `GOV-SW1` and `GOV-R1`.
 
-Separate VLANs are used for Administration, IT/Security, and Internal Servers.
+![Network Topology](screenshots/network-topology.png)
 
-This limits unnecessary Layer 2 communication and creates separate security zones for different types of systems.
+---
 
-### 2. Extended Access Control List (ACL)
+# 🛡️ Implemented Security Controls
 
-An extended ACL named `ADMIN-RESTRICTIONS` prevents the Administration VLAN from accessing the Internal Servers VLAN.
+## 1. VLAN Segmentation
 
-| Source | Destination | Result |
-|--------|-------------|--------|
-| Administration | Internal Servers | ❌ Denied |
-| Administration | IT / Security | ✅ Allowed |
-| IT / Security | Internal Servers | ✅ Allowed |
+The network is divided into separate VLANs for:
 
-This policy restricts unnecessary access to sensitive internal resources while preserving required communication.
+- Administration
+- IT/Security
+- Internal Servers
+- DMZ
 
-### 3. Switch Port Security
+This reduces unnecessary Layer 2 broadcast exposure and provides logical separation between different organizational functions.
 
-Port Security is enabled on the active access ports connected to the Administration workstation, IT/Security workstation, and Internal Server.
+---
 
-Sticky MAC learning is used to associate each access port with its authorized device.
+## 2. Router-on-a-Stick Inter-VLAN Routing
 
-Each protected port is limited to one MAC address. If an unauthorized device replaces the authorized device, the configured shutdown violation mode places the interface into a secure-shutdown state.
+`GOV-R1` provides routing between VLANs using 802.1Q subinterfaces:
 
-### 4. Unused Port Hardening
+```text
+G0/0.10 → VLAN 10
+G0/0.20 → VLAN 20
+G0/0.50 → VLAN 50
+G0/0.60 → VLAN 60
+```
+
+The connection between `GOV-R1` and `GOV-SW1` operates as an 802.1Q trunk.
+
+---
+
+## 3. Administration Access Control
+
+An extended ACL named:
+
+```text
+ADMIN-RESTRICTIONS
+```
+
+prevents the Administration VLAN from accessing the Internal Server VLAN.
+
+Security policy:
+
+```text
+ADMIN → Internal Servers = DENIED
+ADMIN → Other permitted networks = ALLOWED
+```
+
+The policy was validated using connectivity testing.
+
+---
+
+## 4. DMZ Isolation
+
+A dedicated DMZ was implemented using VLAN 60.
+
+The DMZ hosts:
+
+```text
+DMZ-WEB-SERVER
+192.168.60.10/24
+```
+
+An extended ACL named:
+
+```text
+DMZ-RESTRICTIONS
+```
+
+prevents the DMZ from initiating communication with the Internal Server VLAN.
+
+Current tested policy:
+
+```text
+DMZ → Internal Servers = DENIED
+DMZ → IT/Security       = ALLOWED
+```
+
+This provides logical separation between the DMZ service and internal server resources.
+
+---
+
+## 5. HTTPS Web Service
+
+`DMZ-WEB-SERVER` hosts a simulated Government Office Portal.
+
+The server is configured with:
+
+```text
+HTTP  = Disabled
+HTTPS = Enabled
+```
+
+HTTPS access was successfully tested from the IT/Security workstation.
+
+> HTTPS functionality is demonstrated within the Cisco Packet Tracer simulation environment and should not be interpreted as production-grade TLS validation.
+
+---
+
+## 6. Port Security
+
+Port Security with sticky MAC learning is enabled on the active access ports:
+
+| Interface | Device | VLAN |
+|---|---|---:|
+| `Fa0/2` | ADMIN-PC | 10 |
+| `Fa0/3` | SECURITY-PC | 20 |
+| `Fa0/4` | INTERNAL-SERVER | 50 |
+| `Fa0/5` | DMZ-WEB-SERVER | 60 |
+
+Each protected access port is limited to one learned MAC address.
+
+An unauthorized-device test was performed on `Fa0/2`, causing the port to enter a secure-shutdown state after a security violation.
+
+---
+
+## 7. Unused Port Hardening
 
 Unused switch ports are:
 
 - Assigned to VLAN 999 (`UNUSED-PORTS`)
 - Configured as access ports
-- Administratively disabled
+- Administratively shut down
 
-This reduces the risk of unauthorized devices being connected through unused switch interfaces.
+The router-facing interface `Gi0/1` remains active as the 802.1Q trunk.
 
-### 5. Secure SSH Management
+---
 
-Remote management of `GOV-R1` is configured using SSH Version 2 instead of Telnet.
+## 8. Secure SSH Management
 
-A local privileged administrative account is used for authentication. Credential information is intentionally excluded from the public repository.
+Remote router management uses:
 
-### 6. Management Access Control
+```text
+SSH Version 2
+```
 
-A standard ACL named `SSH-MANAGEMENT` restricts remote router management to the IT/Security network:
+Telnet is not permitted on the VTY lines.
 
-`192.168.20.0/24`
+A local privileged administrative account is used for authentication.
 
-The ACL is applied to the VTY lines, and only SSH connections are permitted.
+> Authentication secrets are intentionally excluded from the public repository.
 
-As a result:
+---
 
-| Source | SSH Management |
-|--------|----------------|
-| IT / Security VLAN | ✅ Allowed |
-| Administration VLAN | ❌ Denied |
+## 9. SSH Management ACL
 
-## 🧪 Security Testing
+A standard ACL named:
 
-The implemented controls were validated through both positive and negative security tests.
-### ACL Enforcement
+```text
+SSH-MANAGEMENT
+```
 
-The Administration workstation can communicate with permitted network resources but cannot reach the Internal Server.
+restricts remote router management to:
 
-![Administration Access Denied](screenshots/acl-admin-server-denied.png)
+```text
+192.168.20.0/24
+```
 
-The IT/Security workstation can successfully reach the Internal Server, confirming that the server remains available to an authorized network segment.
+Therefore:
 
-![Security Access Allowed](screenshots/acl-security-server-allowed.png)
+```text
+SECURITY-PC → SSH → GOV-R1 = ALLOWED
+ADMIN-PC    → SSH → GOV-R1 = DENIED
+```
 
-### ACL Hit Counter Verification
+Both conditions were functionally tested.
 
-Router ACL counters were checked to verify that the deny rule was actively processing prohibited traffic.
+---
 
-![ACL Hit Counter Verification](screenshots/acl-hit-counters.png)
+# 🧪 Security Testing
 
-### SSH Management Testing
+The implemented controls were validated using several tests, including:
 
-SSH access from the IT/Security VLAN succeeds:
+- Administration-to-Internal-Server access denial
+- IT/Security-to-Internal-Server access success
+- DMZ-to-Internal-Server access denial
+- DMZ-to-IT/Security access success
+- Authorized SSH management
+- Unauthorized SSH management denial
+- Port Security violation detection
+- DMZ Port Security verification
+- Unused port status verification
+- HTTPS service accessibility
+- HTTP service disablement
 
-![Authorized SSH Access](screenshots/ssh-security-pc-success.png.png)
+Testing screenshots are available in:
 
-SSH access from the Administration VLAN is refused:
+[`screenshots/`](screenshots/)
 
-![Unauthorized SSH Access Denied](screenshots/ssh-admin-pc-denied.png.png)
-
-This confirms that remote management access is restricted according to the management security policy.
-
-### Port Security Testing
-
-An unauthorized device was connected to a protected switch port.
-
-The switch detected a different source MAC address, recorded a security violation, and placed the interface into `secure-shutdown`.
-
-![Port Security Violation](screenshots/port-security-violation.png.png)
-
-### Unused Port Verification
-
-The switch interface status confirms that unused interfaces are assigned to VLAN 999 and disabled, while required access ports and the router trunk remain operational.
-
-![Unused Port Hardening](screenshots/unused-ports-hardening.png)
-
-More detailed testing evidence is available in the [`screenshots`](screenshots/) directory.
-
-## 🛠️ Technologies and Concepts
-
-- Cisco Packet Tracer
-- Cisco IOS
-- VLAN Segmentation
-- IEEE 802.1Q Trunking
-- Router-on-a-Stick
-- Inter-VLAN Routing
-- Extended ACLs
-- Standard ACLs
-- Port Security
-- Sticky MAC Learning
-- SSH Version 2
-- Switch Port Hardening
-- Principle of Least Privilege
+---
 
 ## 📁 Repository Structure
 
@@ -172,33 +261,85 @@ secure-network-design-lab/
 │   └── GOV-SW1-config.txt
 │
 ├── packet-tracer/
-│   ├── README.md
-│   └── secure-government-office-network.pkt
+│   └── [Packet Tracer lab files]
 │
 └── screenshots/
     ├── README.md
     ├── network-topology.png
     ├── acl-admin-server-denied.png
     ├── acl-security-server-allowed.png
-    ├── acl-hit-counters.png
     ├── ssh-security-pc-success.png
     ├── ssh-admin-pc-denied.png
     ├── port-security-violation.png
-    └── unused-ports-hardening.png
+    ├── unused-ports-hardening.png
+    ├── dmz-internal-server-denied.png
+    ├── dmz-security-pc-allowed.png
+    ├── dmz-port-security.png
+    ├── dmz-https-success.png
+    └── dmz-http-disabled.png
 ```
+
+---
+
+## 🧰 Technologies & Concepts
+
+- Cisco Packet Tracer
+- Cisco IOS
+- VLANs
+- IEEE 802.1Q Trunking
+- Router-on-a-Stick
+- Inter-VLAN Routing
+- Access Control Lists (ACLs)
+- DMZ Segmentation
+- Port Security
+- Sticky MAC Learning
+- SSH Version 2
+- Layer 2 Hardening
+- HTTPS Service Simulation
+- Network Security Testing
+
+---
 
 ## 🚀 Planned Improvements
 
-The project will continue to evolve with additional network infrastructure and security controls. Planned improvements include:
+The project will continue to evolve with additional infrastructure and security controls.
 
-- Addition of a separate DMZ for public-facing services
+Planned improvements include:
+
 - Addition of a Warehouse branch network
 - Site-to-Site VPN connectivity between the Head Office and Warehouse
-- Additional firewall and traffic filtering policies
+- Additional traffic filtering and security policies
 - Expanded security testing and documentation
 
-## 🎯 Project Objective
+---
 
-The objective of this lab is to develop practical experience in designing, configuring, securing, testing, and documenting a segmented enterprise-style network.
+## ⚠️ Lab Scope
 
-The project focuses not only on network connectivity, but also on applying security controls and validating their effectiveness through practical testing.
+This project is implemented in Cisco Packet Tracer as an educational cybersecurity lab.
+
+The DMZ currently represents a **segmented server zone within the simulated enterprise network**. External Internet/WAN connectivity, NAT, and a perimeter firewall have not yet been implemented.
+
+The project should therefore not be interpreted as a complete production government network architecture.
+
+---
+
+## 👩‍💻 Author
+
+**Abrar Al-Nairi**
+
+Computer Engineering — Cybersecurity  
+Middle East College, Oman
+
+---
+
+## 📌 Project Status
+
+**Work in Progress**
+
+Current Head Office implementation:
+
+**VLAN Segmentation + Inter-VLAN Routing + ACLs + Port Security + Unused Port Hardening + SSH Security + DMZ Isolation + HTTPS Web Service**
+
+Next major phase:
+
+**Warehouse Branch Network → Site-to-Site VPN**
