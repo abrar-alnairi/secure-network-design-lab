@@ -1,89 +1,200 @@
 # Security Testing Evidence
 
-This directory contains screenshots demonstrating the security controls implemented and tested in the Secure Government Office Network Lab.
+This directory contains screenshots used to validate the security controls implemented in the Secure Government Office Network Lab.
+
+---
 
 ## Network Topology
 
-![Network Topology](network-topology.png)
-
-The topology consists of a Cisco router and switch with three segmented VLANs:
+The current Head Office topology includes four segmented networks:
 
 - VLAN 10 — Administration
 - VLAN 20 — IT/Security
 - VLAN 50 — Internal Servers
+- VLAN 60 — DMZ
 
-Inter-VLAN routing is provided through an 802.1Q trunk using a router-on-a-stick design.
+![Network Topology](network-topology.png)
 
 ---
 
 ## ACL Enforcement — Administration Blocked
 
+The Administration VLAN is restricted from accessing the Internal Server VLAN.
+
+Test:
+
+`ADMIN-PC (192.168.10.10) → INTERNAL-SERVER (192.168.50.10)`
+
+Result: **Denied**
+
 ![Administration Access Denied](acl-admin-server-denied.png)
-
-The Administration PC can reach its default gateway and the IT/Security network, but access to the Internal Server (`192.168.50.10`) is denied.
-
-This validates the `ADMIN-RESTRICTIONS` extended ACL applied to VLAN 10.
 
 ---
 
 ## ACL Enforcement — Security Access Allowed
 
+The IT/Security VLAN is permitted to access the Internal Server VLAN.
+
+Test:
+
+`SECURITY-PC (192.168.20.10) → INTERNAL-SERVER (192.168.50.10)`
+
+Result: **Allowed**
+
 ![Security Access Allowed](acl-security-server-allowed.png)
-
-The IT/Security PC successfully reaches the Internal Server (`192.168.50.10`).
-
-This confirms that server connectivity remains available to authorized security personnel while Administration access is restricted.
 
 ---
 
-## Secure SSH Management — Authorized
+## DMZ Isolation — Internal Server Access Denied
 
-![SSH Security PC Success](ssh-security-pc-success.png.png)
+An extended ACL named `DMZ-RESTRICTIONS` prevents devices in the DMZ from initiating access to the Internal Server VLAN.
 
-Remote SSH management of `GOV-R1` succeeds from the IT/Security VLAN using SSH Version 2.
+Test:
+
+`DMZ-WEB-SERVER (192.168.60.10) → INTERNAL-SERVER (192.168.50.10)`
+
+Result: **Denied**
+
+![DMZ Internal Server Denied](dmz-internal-server-denied.png)
+
+---
+
+## DMZ Policy — IT/Security Access Allowed
+
+Traffic from the DMZ to the IT/Security VLAN remains permitted under the current ACL policy.
+
+Test:
+
+`DMZ-WEB-SERVER (192.168.60.10) → SECURITY-PC (192.168.20.10)`
+
+Result: **Allowed**
+
+![DMZ Security PC Allowed](dmz-security-pc-allowed.png)
+
+---
+
+## HTTPS Web Service — Success
+
+The web service hosted on `DMZ-WEB-SERVER` is accessible through HTTPS.
+
+Test:
+
+`SECURITY-PC → https://192.168.60.10`
+
+Result: **HTTPS service accessible**
+
+![DMZ HTTPS Success](dmz-https-success.png)
+
+---
+
+## HTTP Web Service — Disabled
+
+Plain HTTP was disabled on the DMZ web server while HTTPS remained enabled.
+
+Test:
+
+`SECURITY-PC → http://192.168.60.10`
+
+Result: **HTTP service unavailable**
+
+![DMZ HTTP Disabled](dmz-http-disabled.png)
+
+> HTTPS functionality in this project is demonstrated within the Cisco Packet Tracer simulation environment.
+
+---
+
+## Secure SSH Management — Authorized Source
+
+SSH version 2 is enabled on `GOV-R1`, and remote management is restricted to the IT/Security VLAN.
+
+Test:
+
+`SECURITY-PC (192.168.20.10) → GOV-R1`
+
+Result: **SSH connection successful**
+
+![SSH Security PC Success](ssh-security-pc-success.png)
 
 ---
 
 ## Secure SSH Management — Unauthorized Source Denied
 
-![SSH Administration PC Denied](ssh-admin-pc-denied.png.png)
+An SSH management ACL prevents the Administration VLAN from remotely managing the router.
 
-An SSH connection initiated from the Administration VLAN is refused.
+Test:
 
-Remote router management is restricted to the IT/Security network using the `SSH-MANAGEMENT` access control list applied to the VTY lines.
+`ADMIN-PC (192.168.10.10) → GOV-R1`
+
+Result: **Connection refused**
+
+![SSH Administration PC Denied](ssh-admin-pc-denied)
 
 ---
 
 ## Port Security Violation
 
-![Port Security Violation](port-security-violation.png.png)
+Switch access ports use Port Security with sticky MAC learning.
 
-Port Security detects an unauthorized MAC address connected to `Fa0/2`.
+An unauthorized device was connected to the Administration access port `Fa0/2`.
 
-The switch places the interface into `secure-shutdown` state and records a security violation, demonstrating protection against unauthorized device replacement.
+Result:
+
+- Unauthorized MAC address detected
+- Security violation recorded
+- Port entered `secure-shutdown`
+
+![Port Security Violation](port-security-violation.png)
+
+---
+
+## DMZ Port Security
+
+Port Security is also enabled on `Fa0/5`, which connects the DMZ web server.
+
+The switch learned the server MAC address using sticky MAC:
+
+`0030.A335.892E`
+
+Result:
+
+- Port Security: **Enabled**
+- Port Status: **Secure-up**
+- Maximum MAC addresses: **1**
+- Sticky MAC addresses: **1**
+
+![DMZ Port Security](dmz-port-security.png)
 
 ---
 
 ## Unused Port Hardening
 
+Unused switch ports are assigned to VLAN 999 (`UNUSED-PORTS`) and administratively shut down.
+
+The current interface status also shows:
+
+- `Fa0/2` → VLAN 10
+- `Fa0/3` → VLAN 20
+- `Fa0/4` → VLAN 50
+- `Fa0/5` → VLAN 60
+- `Gi0/1` → 802.1Q trunk
+- Unused ports → VLAN 999 / disabled
+
 ![Unused Ports Hardening](unused-ports-hardening.png)
-
-Unused switch interfaces are assigned to VLAN 999 (`UNUSED-PORTS`) and administratively disabled.
-
-Only required access ports and the router trunk remain operational.
 
 ---
 
-## Security Controls Demonstrated
+## Summary
 
-The testing evidence demonstrates:
+The screenshots demonstrate successful validation of:
 
-- VLAN-based network segmentation
-- Inter-VLAN routing
-- Extended ACL enforcement
-- Restricted access to internal server resources
-- SSH Version 2 remote management
-- Management access restricted to the IT/Security VLAN
+- VLAN segmentation
+- Inter-VLAN access control
+- Administration-to-server restrictions
+- DMZ isolation
+- HTTPS-only web service configuration
+- SSH management restrictions
 - Port Security with sticky MAC learning
-- Automatic shutdown following a Port Security violation
-- Unused switch port isolation and shutdown
+- Unauthorized device detection
+- Unused port hardening
+
+These tests provide evidence that the configured security controls operate as intended within the Packet Tracer lab environment.
