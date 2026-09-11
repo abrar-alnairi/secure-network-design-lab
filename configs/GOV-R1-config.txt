@@ -9,9 +9,10 @@ hostname GOV-R1
 
 !
 ! Local administrative account
-! Secret intentionally redacted from public repository
+! Username: secadmin
+! Privilege level: 15
+! Secret intentionally omitted from public repository
 !
-username secadmin privilege 15 secret <REDACTED>
 
 !
 ! SSH Management
