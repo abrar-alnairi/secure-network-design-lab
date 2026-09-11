@@ -127,7 +127,7 @@ Test:
 
 Result: **Connection refused**
 
-![SSH Administration PC Denied](ssh-admin-pc-denied)
+![SSH Administration PC Denied](ssh-admin-pc-denied.png)
 
 ---
 
