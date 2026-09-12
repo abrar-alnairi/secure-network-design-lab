@@ -55,7 +55,7 @@ The current implementation represents the **Head Office** of a small government 
 
 The Head Office currently uses four operational VLANs connected through an 802.1Q trunk between `GOV-SW1` and `GOV-R1`.
 
-![Network Topology](screenshots/network-topology.png)
+![Network Topology](screenshots/network.png)
 
 ---
 
