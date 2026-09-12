@@ -13,7 +13,7 @@ The current Head Office topology includes four segmented networks:
 - VLAN 50 — Internal Servers
 - VLAN 60 — DMZ
 
-![Network Topology](network-topology.png)
+![Network Topology](network-topology (2).png)
 
 ---
 
