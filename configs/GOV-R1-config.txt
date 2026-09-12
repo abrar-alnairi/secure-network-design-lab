@@ -1,85 +1,139 @@
-!
+! =========================================================
 ! Secure Government Office Network Lab
 ! Device: GOV-R1
-! Platform: Cisco 1941
-! Sanitized configuration for public GitHub repository
-!
+! Platform: Cisco ISR4331
+! Role: Head Office Router
+! =========================================================
+
+version 16.6.4
 
 hostname GOV-R1
 
-!
-! Local administrative account
-! Username: secadmin
-! Privilege level: 15
-! Secret intentionally omitted from public repository
-!
+ip cef
+no ipv6 cef
 
-!
-! SSH Management
-!
+! ---------------------------------------------------------
+! Local Management
+! ---------------------------------------------------------
+
+! Local administrator account configured in the lab.
+! Credential/hash intentionally omitted from the public file.
+
 ip domain-name govlab.local
 ip ssh version 2
 
-!
-! Router-on-a-Stick / Inter-VLAN Routing
-!
-interface GigabitEthernet0/0
- no ip address
- no shutdown
+! ---------------------------------------------------------
+! IKE / IPsec VPN
+! ---------------------------------------------------------
 
-interface GigabitEthernet0/0.10
+crypto isakmp policy 10
+ encr aes
+ authentication pre-share
+ group 2
+
+! Pre-shared key intentionally omitted from public repository.
+! VPN peer: 10.0.0.2
+
+crypto ipsec transform-set GOV-SET esp-aes esp-sha-hmac
+
+crypto map GOV-VPN 10 ipsec-isakmp
+ set peer 10.0.0.2
+ set transform-set GOV-SET
+ match address VPN-TRAFFIC
+
+! ---------------------------------------------------------
+! Head Office Router-on-a-Stick
+! ---------------------------------------------------------
+
+interface GigabitEthernet0/0/0
+ description TRUNK-TO-GOV-SW1
+ no ip address
+ duplex auto
+ speed auto
+
+interface GigabitEthernet0/0/0.10
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.0
  ip access-group ADMIN-RESTRICTIONS in
 
-interface GigabitEthernet0/0.20
+interface GigabitEthernet0/0/0.20
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.0
 
-interface GigabitEthernet0/0.50
+interface GigabitEthernet0/0/0.50
  encapsulation dot1Q 50
  ip address 192.168.50.1 255.255.255.0
 
-interface GigabitEthernet0/0.60
+interface GigabitEthernet0/0/0.60
  encapsulation dot1Q 60
  ip address 192.168.60.1 255.255.255.0
  ip access-group DMZ-RESTRICTIONS in
 
-!
-! Unused physical interface
-!
-interface GigabitEthernet0/1
+! ---------------------------------------------------------
+! WAN Interface to Warehouse
+! ---------------------------------------------------------
+
+interface GigabitEthernet0/0/1
+ description WAN-LINK-TO-WH-R1
+ ip address 10.0.0.1 255.255.255.252
+ duplex auto
+ speed auto
+ crypto map GOV-VPN
+
+interface GigabitEthernet0/0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+
+interface Vlan1
  no ip address
  shutdown
 
-!
-! Restrict Administration VLAN from Internal Server VLAN
-!
+! ---------------------------------------------------------
+! Static Routing
+! ---------------------------------------------------------
+
+ip classless
+
+ip route 192.168.70.0 255.255.255.0 10.0.0.2
+
+! ---------------------------------------------------------
+! Head Office Security ACLs
+! ---------------------------------------------------------
+
 ip access-list extended ADMIN-RESTRICTIONS
  deny ip 192.168.10.0 0.0.0.255 192.168.50.0 0.0.0.255
  permit ip any any
 
-!
-! Restrict DMZ from initiating access to Internal Servers
-!
 ip access-list extended DMZ-RESTRICTIONS
  deny ip 192.168.60.0 0.0.0.255 192.168.50.0 0.0.0.255
  permit ip any any
 
-!
-! Permit remote router management only from IT/Security VLAN
-!
+! ---------------------------------------------------------
+! SSH Management ACL
+! ---------------------------------------------------------
+
 ip access-list standard SSH-MANAGEMENT
  permit 192.168.20.0 0.0.0.255
 
-!
-! Secure remote management
-! Telnet is not permitted
-!
+! ---------------------------------------------------------
+! VPN Interesting Traffic
+! ---------------------------------------------------------
+
+ip access-list extended VPN-TRAFFIC
+ permit ip 192.168.10.0 0.0.0.255 192.168.70.0 0.0.0.255
+ permit ip 192.168.20.0 0.0.0.255 192.168.70.0 0.0.0.255
+ permit ip 192.168.50.0 0.0.0.255 192.168.70.0 0.0.0.255
+ permit ip 192.168.60.0 0.0.0.255 192.168.70.0 0.0.0.255
+
+! ---------------------------------------------------------
+! VTY / Secure Remote Management
+! ---------------------------------------------------------
+
 line vty 0 4
  access-class SSH-MANAGEMENT in
  login local
  transport input ssh
 
-!
 end
