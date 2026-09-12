@@ -1,0 +1,60 @@
+! =========================================================
+! Secure Government Office Network Lab
+! Device: WH-SW1
+! Platform: Cisco 2960
+! Role: Warehouse Access Switch
+! =========================================================
+
+version 15.0
+
+hostname WH-SW1
+
+spanning-tree mode pvst
+
+! ---------------------------------------------------------
+! VLAN 70 - Warehouse Access Port
+! ---------------------------------------------------------
+
+interface FastEthernet0/2
+ switchport access vlan 70
+ switchport mode access
+ switchport port-security
+ switchport port-security mac-address sticky
+ switchport port-security mac-address sticky 0040.0BA9.95BE
+
+! ---------------------------------------------------------
+! Router Uplink
+! ---------------------------------------------------------
+
+interface GigabitEthernet0/1
+ switchport access vlan 70
+ switchport mode access
+
+! ---------------------------------------------------------
+! Unused Port Hardening
+! ---------------------------------------------------------
+
+interface FastEthernet0/1
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+
+interface range FastEthernet0/3 - 24
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+
+interface GigabitEthernet0/2
+ switchport access vlan 999
+ switchport mode access
+ shutdown
+
+! ---------------------------------------------------------
+! Default SVI
+! ---------------------------------------------------------
+
+interface Vlan1
+ no ip address
+ shutdown
+
+end
