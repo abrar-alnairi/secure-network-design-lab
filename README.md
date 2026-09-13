@@ -236,7 +236,7 @@ Telnet is not permitted on its VTY lines.
 
 A local privileged administrative account is used for authentication.
 
-> > Authentication secrets are intentionally excluded from the public text configuration files. The downloadable Packet Tracer lab uses demonstration-only credentials.
+> Authentication secrets are intentionally excluded from the public text configuration files. The downloadable Packet Tracer lab uses demonstration-only credentials.
 
 ---
 
@@ -354,8 +354,6 @@ This confirms that matching inter-site traffic successfully triggered the VPN tu
 
 ---
 
----
-
 ## 14. Warehouse Access Control
 
 An extended ACL named:
@@ -447,7 +445,7 @@ The implemented controls were validated using multiple functional tests, includi
 - Warehouse-to-Head-Office connectivity
 - IKE security association verification
 - IPsec encryption verification
--  Warehouse least-privilege access-control validation
+- Warehouse least-privilege access-control validation
 - Authorized IT/Security SSH access to the Warehouse router
 - Unauthorized Warehouse SSH management denial
 - Centralized Syslog event collection from both routers
