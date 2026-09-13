@@ -237,7 +237,7 @@ Telnet is not permitted on its VTY lines.
 
 A local privileged administrative account is used for authentication.
 
-> Authentication secrets are intentionally excluded from the public repository.
+> > Authentication secrets are intentionally excluded from the public text configuration files. The downloadable Packet Tracer lab uses demonstration-only credentials.
 
 ---
 
