@@ -1,7 +1,6 @@
 # 🔐 Secure Government Office Network Lab
 
-> **Status: Work in Progress**
-
+> **Status: Completed Core Implementation**
 A cybersecurity networking lab designed and implemented using Cisco Packet Tracer to simulate a secure multi-site government office network.
 
 The project currently includes a segmented Head Office, a Warehouse branch, a simulated point-to-point WAN connection, and a Site-to-Site IPsec VPN. It demonstrates network segmentation, access control, secure device management, Layer 2 hardening, DMZ isolation, branch connectivity, and encrypted site-to-site communication.
@@ -355,6 +354,78 @@ This confirms that matching inter-site traffic successfully triggered the VPN tu
 
 ---
 
+---
+
+## 14. Warehouse Access Control
+
+An extended ACL named:
+
+```text
+WAREHOUSE-RESTRICTIONS
+```
+
+implements least-privilege access control for traffic originating from the Warehouse network.
+
+The current validated policy is:
+
+```text
+WAREHOUSE → Administration    = DENIED
+WAREHOUSE → Internal Servers  = DENIED
+WAREHOUSE → IT/Security       = ALLOWED
+WAREHOUSE → DMZ               = ALLOWED
+```
+
+The ACL is applied inbound on the Warehouse LAN interface of `WH-R1`.
+
+This separates secure VPN connectivity from access authorization: the VPN protects inter-site traffic, while the ACL determines which Head Office resources the Warehouse is permitted to access.
+
+---
+
+## 15. Secure Warehouse Router Management
+
+`WH-R1` is configured for SSH Version 2 remote management.
+
+A management ACL named:
+
+```text
+SSH-MANAGEMENT
+```
+
+restricts remote administration to the IT/Security network:
+
+```text
+192.168.20.0/24
+```
+
+The following conditions were functionally validated:
+
+```text
+SECURITY-PC  → SSH → WH-R1 = ALLOWED
+WAREHOUSE-PC → SSH → WH-R1 = DENIED
+```
+
+Authentication secrets are intentionally excluded from the public text configuration files. The downloadable Packet Tracer lab uses demonstration-only credentials.
+
+---
+
+## 16. Centralized Syslog Monitoring
+
+`INTERNAL-SERVER (192.168.50.10)` operates as a centralized Syslog server for network-device event monitoring.
+
+Both routers forward Syslog messages to the server:
+
+```text
+GOV-R1 ──┐
+         ├──→ INTERNAL-SERVER (192.168.50.10)
+WH-R1  ──┘
+```
+
+Centralized logging was functionally validated by generating configuration and interface-state events and confirming their reception by the Syslog service.
+
+This provides basic centralized visibility into network-device events within the Packet Tracer environment.
+
+---
+
 # 🧪 Security Testing
 
 The implemented controls were validated using multiple functional tests, including:
@@ -376,6 +447,10 @@ The implemented controls were validated using multiple functional tests, includi
 - Warehouse-to-Head-Office connectivity
 - IKE security association verification
 - IPsec encryption verification
+-  Warehouse least-privilege access-control validation
+- Authorized IT/Security SSH access to the Warehouse router
+- Unauthorized Warehouse SSH management denial
+- Centralized Syslog event collection from both routers
 
 Testing evidence is documented in:
 
@@ -449,18 +524,16 @@ secure-network-design-lab/
 
 ---
 
-## 🚀 Planned Improvements
+## 🚀 Future Improvements
 
-The project will continue to evolve through additional security hardening and validation.
+The core implementation of the lab is complete. Future extensions may include:
 
-Potential future improvements include:
-
-- Additional Warehouse traffic filtering and access-control policies
-- Enhanced secure management of branch infrastructure
-- Expanded monitoring and logging
+- Expanded monitoring and logging capabilities
 - Additional security validation and attack-simulation scenarios
-- Further documentation and architecture refinement
-
+- Perimeter firewall integration
+- NAT and simulated Internet connectivity
+- More advanced branch and inter-site security policies
+- Further architecture refinement as the lab evolves
 ---
 
 ## ⚠️ Lab Scope
@@ -495,12 +568,11 @@ Middle East College, Oman
 
 ## 📌 Project Status
 
-**Work in Progress**
-
+**Completed Core Implementation**
 Current implementation:
 
-**Head Office VLAN Segmentation + Inter-VLAN Routing + ACLs + Port Security + Unused Port Hardening + SSH Security + DMZ Isolation + HTTPS Web Service + Warehouse Branch + Static Routing + Site-to-Site IPsec VPN**
+The completed core implementation includes:
 
-Next phase:
+**Head Office VLAN Segmentation + Inter-VLAN Routing + ACLs + Port Security + Unused Port Hardening + Secure SSH Management + DMZ Isolation + HTTPS Web Service + Warehouse Branch + Static Routing + Site-to-Site IPsec VPN + Warehouse Least-Privilege Access Control + Secure Branch Router Management + Centralized Syslog Monitoring + Security Validation**
 
-**Security Hardening & Validation**
+Future work will focus on optional extensions and additional security experimentation rather than completion of the core architecture.
