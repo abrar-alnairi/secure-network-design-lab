@@ -3,26 +3,34 @@
 ! Device: WH-R1
 ! Platform: Cisco ISR4331
 ! Role: Warehouse Branch Router
+! Sanitized configuration for public GitHub repository
 ! =========================================================
 
-version 16.6.4
+version 15.4
+service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
 
 hostname WH-R1
 
 ip cef
 no ipv6 cef
 
-! ---------------------------------------------------------
-! IKE / IPsec VPN
-! ---------------------------------------------------------
+!
+! Local administrator credential intentionally omitted
+!
+! username secadmin privilege 15 secret <credential-omitted>
+!
 
 crypto isakmp policy 10
  encr aes
  authentication pre-share
  group 2
 
-! Pre-shared key intentionally omitted from public repository.
-! VPN peer: 10.0.0.1
+!
+! VPN pre-shared key intentionally omitted
+! Peer: 10.0.0.1
+!
 
 crypto ipsec transform-set GOV-SET esp-aes esp-sha-hmac
 
@@ -31,19 +39,15 @@ crypto map GOV-VPN 10 ipsec-isakmp
  set transform-set GOV-SET
  match address VPN-TRAFFIC
 
-! ---------------------------------------------------------
-! Warehouse LAN
-! ---------------------------------------------------------
+ip ssh version 2
+ip domain-name govlab.local
 
 interface GigabitEthernet0/0/0
  description WAREHOUSE-LAN
  ip address 192.168.70.1 255.255.255.0
+ ip access-group WAREHOUSE-RESTRICTIONS in
  duplex auto
  speed auto
-
-! ---------------------------------------------------------
-! WAN Interface to Head Office
-! ---------------------------------------------------------
 
 interface GigabitEthernet0/0/1
  description WAN-LINK-TO-GOV-R1
@@ -62,10 +66,6 @@ interface Vlan1
  no ip address
  shutdown
 
-! ---------------------------------------------------------
-! Static Routing
-! ---------------------------------------------------------
-
 ip classless
 
 ip route 192.168.10.0 255.255.255.0 10.0.0.1
@@ -73,9 +73,7 @@ ip route 192.168.20.0 255.255.255.0 10.0.0.1
 ip route 192.168.50.0 255.255.255.0 10.0.0.1
 ip route 192.168.60.0 255.255.255.0 10.0.0.1
 
-! ---------------------------------------------------------
-! VPN Interesting Traffic
-! ---------------------------------------------------------
+ip flow-export version 9
 
 ip access-list extended VPN-TRAFFIC
  permit ip 192.168.70.0 0.0.0.255 192.168.10.0 0.0.0.255
@@ -83,11 +81,28 @@ ip access-list extended VPN-TRAFFIC
  permit ip 192.168.70.0 0.0.0.255 192.168.50.0 0.0.0.255
  permit ip 192.168.70.0 0.0.0.255 192.168.60.0 0.0.0.255
 
-! ---------------------------------------------------------
-! VTY Lines
-! ---------------------------------------------------------
+ip access-list extended WAREHOUSE-RESTRICTIONS
+ deny ip 192.168.70.0 0.0.0.255 192.168.10.0 0.0.0.255
+ deny ip 192.168.70.0 0.0.0.255 192.168.50.0 0.0.0.255
+ permit ip 192.168.70.0 0.0.0.255 192.168.20.0 0.0.0.255
+ permit ip 192.168.70.0 0.0.0.255 192.168.60.0 0.0.0.255
+ permit ip any any
+
+ip access-list standard SSH-MANAGEMENT
+ permit 192.168.20.0 0.0.0.255
+
+!
+! Centralized Syslog
+!
+logging 192.168.50.10
+
+line con 0
+
+line aux 0
 
 line vty 0 4
- login
+ access-class SSH-MANAGEMENT in
+ login local
+ transport input ssh
 
 end
